@@ -1,16 +1,16 @@
-module pointconv(clk, reset, new_weight, weight_addr, valid_out, rdy,
+module pointconv2(clk, reset, new_weight, weight_addr, valid_out, rdy,
 					indata, indataPosition, numOfOutmaps, valid_in, inmap_in, numOfInVals, outdata, 
 					outposition, layer_done_in, layer_done_out);
     input						clk, reset, valid_in, layer_done_in;//asynch signal
     input [31:0]				new_weight; 
     input [6:0] 				numOfOutmaps; 
     input [5:0] 				numOfInVals;
-    input [7:0][31:0]			indata, indataPosition;
+    input [31:0]			indata, indataPosition;
     input [4:0]					inmap_in;
     output logic [31:0]			outposition;
     output logic [11:0]			weight_addr;
     output logic				valid_out, rdy, layer_done_out;
-    (* mark_debug = "true" *) output logic [7:0][31:0]			outdata;
+    output logic [7:0][31:0]			outdata;
     
 
     logic						load_weights, calculations, calc_delay;
@@ -53,29 +53,20 @@ module pointconv(clk, reset, new_weight, weight_addr, valid_out, rdy,
 			outmapfilter[prev_count]<=new_weight;
 
 			////////////////////////////////////////mult with outmap filters in parallel
-			if(valid_in & !calculations)
-				calculations<=1;	
-			if((valid_in | calculations) & !(load_weights)) begin
-				if(input_count < numOfInVals) begin
-					outposition<=indataPosition[input_count];
-					valid_out<=1;
-					input_count<=input_count+1;
-					for(i=0; i<8; i=i+1)//16 is max number of numOfOutmaps in this system
-						outdata[i]<=indata[input_count]*outmapfilter[i];
-				end	else begin
-					input_count<=0;
-					valid_out<=0;
-					calculations<=0;
-				end
-
-			end 
+			if(valid_in & !(load_weights) & (prev_inmap==inmap_in)) begin
+				outposition<=indataPosition;
+				valid_out<=1;
+				for(i=0; i<8; i=i+1)//16 is max number of numOfOutmaps in this system
+					outdata[i]<=indata*outmapfilter[i];
+			end else
+				valid_out<=0;
 
 		end else
 			layer_done_out<=1;
 	end
 
 	always_comb begin
-		if(prev_inmap!=inmap_in | load_weights | calculations | valid_in) begin
+		if(prev_inmap!=inmap_in | load_weights) begin
 			rdy=0;
 		end else
 			rdy=1;

@@ -1,4 +1,4 @@
-module zero_skip_conv(wr_enout0, wr_enout1, wr_enout2, wr_enout3,
+module zero_skip_conv2(wr_enout0, wr_enout1, wr_enout2, wr_enout3,
                         wr_enout4, wr_enout5, wr_enout6, wr_enout7,
                         wr_enout8, wr_enout9, wr_enout10, wr_enout11,
                         wr_enout12, wr_enout13, wr_enout14, wr_enout15,
@@ -46,13 +46,13 @@ module zero_skip_conv(wr_enout0, wr_enout1, wr_enout2, wr_enout3,
                         rddataout8, rddataout9, rddataout10, rddataout11, 
                         rddataout12, rddataout13, rddataout14, rddataout15;
 
-    (* mark_debug = "true" *) output logic        wr_en_for_input_data, PL_need_weights, PL_need_data, controlled_reset;
+    output logic        wr_en_for_input_data, PL_need_weights, PL_need_data, controlled_reset;
     output logic        wr_enout0, wr_enout1, wr_enout2, wr_enout3,
                         wr_enout4, wr_enout5, wr_enout6, wr_enout7,
                         wr_enout8, wr_enout9, wr_enout10, wr_enout11,
                         wr_enout12, wr_enout13, wr_enout14, wr_enout15;
-    (* mark_debug = "true" *) output logic [31:0] wrdata_for_input_data, wrposition_for_input_data;
-    (* mark_debug = "true" *) output logic [15:0] addr_for_input_data;
+    output logic [31:0] wrdata_for_input_data, wrposition_for_input_data;
+    output logic [15:0] addr_for_input_data;
     output logic [31:0] wrdataout0, wrdataout1, wrdataout2, wrdataout3,  
                         wrdataout4, wrdataout5, wrdataout6, wrdataout7, 
                         wrdataout8, wrdataout9, wrdataout10, wrdataout11,  
@@ -67,10 +67,11 @@ module zero_skip_conv(wr_enout0, wr_enout1, wr_enout2, wr_enout3,
                         wr_addrout12, wr_addrout13, wr_addrout14, wr_addrout15,
                         addrweightD, addrweightP; 
 
-    (* mark_debug = "true" *) logic				rdyD, rdyP, layer_doneF, layer_doneD, layer_doneP;
+    logic				rdyD, rdyP, layer_doneF, layer_doneD, layer_doneP;
     logic [31:0]		nzFD, nzpositionFD, outaddrP;
     logic				validF, validD, validP, done_translating, last_wr_en;
-    logic [7:0][31:0]  outdataD, outdataAddrD, outdataP;
+    logic [31:0]        outdataD, outdataAddrD; 
+    logic [7:0][31:0]   outdataP;
     logic [2:0]         ksize_side;
     logic [4:0]         inmap_inDP;
     logic [5:0]         numOfOutVals, datasize;
@@ -104,22 +105,22 @@ module zero_skip_conv(wr_enout0, wr_enout1, wr_enout2, wr_enout3,
                         addr_beggining8, addr_beggining9, addr_beggining10, addr_beggining11,
                         addr_beggining12, addr_beggining13, addr_beggining14, addr_beggining15,
                         addrF, recent_addr;
-    (* mark_debug = "true" *) logic [4:0]         next_state, numOfExecutedLayers;
+    logic [4:0]         next_state, numOfExecutedLayers;
     
 
 
     
-    fetchStage f0(.clk(clk) , .reset(controlled_reset) , .rddata(rddataF) , .rddataPosition(rddataAddrF) 
+    fetchStage2 f0(.clk(clk) , .reset(controlled_reset) , .rddata(rddataF) , .rddataPosition(rddataAddrF) 
     	, .addr(addrF) , .next_stage_rdy(rdyD) , .nz(nzFD) , .nzposition(nzpositionFD) , .valid(validF), 
         .next_stage_rdy2(rdyP), .layer_done(layer_doneF));
     
-    depthconv d0(.clk(clk) , .reset(controlled_reset) , .new_weight(rddataweightD) , .weight_addr(addrweightD) , 
+    depthconv2 d0(.clk(clk) , .reset(controlled_reset) , .new_weight(rddataweightD) , .weight_addr(addrweightD) , 
         .next_stage_rdy(1'b0) , .nz(nzFD) , .nzposition(nzpositionFD) , .valid_out(validD) , .rdy(rdyD) , 
         .outdata(outdataD) , .outdataPosition(outdataAddrD) , .ksize_side(ksize_side), .valid_in(validF), 
         .datasize(datasize), .inmap_out(inmap_inDP), .numOfOutVals(numOfOutVals), 
         .layer_done_in(layer_doneF), .layer_done_out(layer_doneD));
     
-    pointconv p0(.clk(clk) , .reset(controlled_reset) , .new_weight(rddataweightP) , 
+    pointconv2 p0(.clk(clk) , .reset(controlled_reset) , .new_weight(rddataweightP) , 
         .weight_addr(addrweightP) , .valid_out(validP) , .rdy(rdyP) ,
         .indata(outdataD) , .indataPosition(outdataAddrD) , .numOfOutmaps(numOfOutmaps) , .valid_in(validD) , 
         .inmap_in(inmap_inDP), .numOfInVals(numOfOutVals), .outposition(outaddrP), .outdata(outdataP), 

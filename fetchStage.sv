@@ -1,4 +1,4 @@
-module fetchStage(clk, reset, rddata, rddataPosition, addr, next_stage_rdy, nz, nzposition, valid, 
+module fetchStage2(clk, reset, rddata, rddataPosition, addr, next_stage_rdy, nz, nzposition, valid, 
 					next_stage_rdy2, layer_done);
     input						clk, reset, next_stage_rdy, next_stage_rdy2;
     input [31:0]				rddata, rddataPosition;
